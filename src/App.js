@@ -6,11 +6,13 @@ function App() {
   return (
     <div className="App">
       <ul>{
-        events.map( (event) =>
-          <li>
-            <span>{ event.title }</span> | 
-            <span>{ event.start }</span> | 
-            <span>{ event.groups }</span>
+        events.map( (event, index) =>
+          <li key={ event.title } style={{padding: '2px', margin: '2px', backgroundColor:  index % 2 ? 'white' : 'lightGray' }}>
+            <p>{ event.title }</p>
+            <p>{ Object.values(event.tags).map( (tag) => `#${tag}`).join(', ') }</p>
+            <p>{ event.start }</p>
+            <p>{ event.groups.join(', ') }</p>
+            <p>details in html of { event.details.length } chars</p>
           </li>
         )
       }</ul>
