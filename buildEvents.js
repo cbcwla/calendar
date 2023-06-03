@@ -45,6 +45,12 @@ const parseMdFile = async (mdName) => {
  * }
  */
 const parseDateTime = (description, dateRange) => {
+  // TOOD @lupengwa (it doesn't have to be in regex)
+  // parts:
+  //   prefix: 提前, 活動第x天, 活動期間, 活動最後1天, 活動後
+  //   range: x天-y天, x周-y天, x周-y周
+  //   timeRange: x時-y時, 下午x時-y時
+
   var m
   if (m = description.match(/提前(\d+)周-(\d+)周/)) {
     const startWeek = parseInt(m[1])
@@ -54,6 +60,7 @@ const parseDateTime = (description, dateRange) => {
     start.setDate(dateRange.start.getDate() - startWeek * 7)
     end.setDate(dateRange.start.getDate() - endWeek * 7)
     return { start: start.toLocaleDateString(), end: end.toLocaleDateString() }
+
   } else {
     return { start: description, end: description }
   }
