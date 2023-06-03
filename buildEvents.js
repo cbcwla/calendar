@@ -6,6 +6,7 @@ import { toHast } from 'mdast-util-to-hast'
 import { toHtml } from 'hast-util-to-html'
 
 import _ from 'lodash'
+import {beforeActivityDateParser, duringActivityDateParser, parseActivityDate} from "./dateParser.js";
 
 const tableToArray = _.rest( (header, rows) => {
   const keys = _.map(header.children, 'children[0].value')
@@ -70,7 +71,8 @@ const parseActivity = (activity, tree) => {
         const text = elem.children[0].value
         const [key, value] = _.split(text, '：') 
         if (key ===  '時間') {
-          return { start: value, end: value} // TODO call @lupengwa's function
+          let result = eventDateParser(value, parseActivityDate(activity.start), parseActivityDate(activity.end))
+          return result
         } else if (key === '同工') {
           return { groups: _.split(value, ' ') }
         } else {
@@ -89,6 +91,17 @@ const yearActivities = async (year) => {
   const tableRows = tree.children[0].children
   const array = tableToArray(...tableRows)
   return activityHash(array)
+}
+
+const eventDateParser = (dateInfo, actStartDate, actEndDate) => {
+  let res = { start: dateInfo, end: dateInfo}
+  if(dateInfo.includes("提前")) {
+    res = beforeActivityDateParser.parseEventDate(dateInfo, actStartDate, actEndDate)
+  }
+  else if(dateInfo.includes("活動")) {
+    res = duringActivityDateParser.parseEventDate(dateInfo, actStartDate, actEndDate)
+  }
+  return res
 }
 
 const main = async () => {
