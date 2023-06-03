@@ -2,6 +2,7 @@
   "name": "calendar",
   "version": "0.1.0",
   "homepage": "https://cbcwla.github.io/calendar",
+  "type": "module",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
@@ -13,8 +14,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "buildEvents": "echo \"const events=\" > src/events.js; node buildEvents.js >> src/events.js; echo \"export default events\" >> src/events.js",
+    "start": "npm run buildEvents && react-scripts start",
+    "build": "npm run buildEvents && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
@@ -39,6 +41,11 @@
     ]
   },
   "devDependencies": {
-    "gh-pages": "^5.0.0"
+    "gh-pages": "^5.0.0",
+    "hast-util-to-html": "^8.0.4",
+    "lodash": "^4.17.21",
+    "mdast-util-gfm": "^2.0.2",
+    "mdast-util-to-hast": "^12.3.0",
+    "micromark-extension-gfm": "^2.0.3"
   }
 }
