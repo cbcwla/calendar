@@ -31,7 +31,42 @@ const parseMdFile = async (mdName) => {
   })
 }
 
-/* GOAL: [{
+/* To parse relative date time description to a { start, end }
+ *
+ * @input
+ * description: e.g. 提前12周-9周, 活動第1天下午3點-6點
+ * dateRange: { start, end } of the activity, both date format
+ *
+ * @output
+ * start and end of the event
+ * {
+ *   start: LocaleDateString
+ *   end: LocaleDateString
+ * }
+ */
+const parseDateTime = (description, dateRange) => {
+  var m
+  if (m = description.match(/提前(\d+)周-(\d+)周/)) {
+    const startWeek = parseInt(m[1])
+    const endWeek = parseInt(m[2])
+    const start = new Date()
+    const end = new Date()
+    start.setDate(dateRange.start.getDate() - startWeek * 7)
+    end.setDate(dateRange.start.getDate() - endWeek * 7)
+    return { start: start.toLocaleDateString(), end: end.toLocaleDateString() }
+  } else {
+    return { start: description, end: description }
+  }
+}
+
+/* To parse one activity into a list of events
+ *
+ * @input
+ * activity: object of { title, start, end, name }
+ * tree: parsed raw tree from md
+ *
+ * @output 
+ * [{
  *   title: eventTitle
  *   start: startTime or startDate
  *   end: endTime or endTime
@@ -41,6 +76,7 @@ const parseMdFile = async (mdName) => {
  * }]
  */
 const parseActivity = (activity, tree) => {
+  // NOTE grouping elements
   let tags = {
     activity: activity.label,
     dept: null
@@ -62,6 +98,13 @@ const parseActivity = (activity, tree) => {
   })
 
   const eventsData = _.groupBy(_.filter(tree.children, 'title'), 'title')
+
+  // NOTE convert each group to an event
+  const activityDateRange = {
+    start: new Date(`${activity.year}/${activity.start}`),
+    end: new Date(`${activity.year}/${activity.end}`)
+  }
+
   return _.map(eventsData, (elements, title) => {
     const attributes = _.map(elements, (elem) => {
       if (elem.type === 'heading') {
@@ -70,7 +113,7 @@ const parseActivity = (activity, tree) => {
         const text = elem.children[0].value
         const [key, value] = _.split(text, '：') 
         if (key ===  '時間') {
-          return { start: value, end: value} // TODO call @lupengwa's function
+          return parseDateTime(value, activityDateRange)
         } else if (key === '同工') {
           return { groups: _.split(value, ' ') }
         } else {
@@ -92,10 +135,11 @@ const yearActivities = async (year) => {
 }
 
 const main = async () => {
-  const activities = await yearActivities('2023')
+  const year = '2023'
+  const activities = await yearActivities(year)
   const events = _.flatten(await Promise.all(_.map(activities, async (activity) => {
     const tree = await parseMdFile(activity.label)
-    return parseActivity(activity, tree)
+    return parseActivity(_.merge({ year }, activity), tree)
   })))
 
   console.log(JSON.stringify(events, null, 2))
