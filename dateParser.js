@@ -1,4 +1,5 @@
 const regex = /\d+(\.\d+)?/g;
+const timeRegex = /([上下]午)?(\d+)點?/g
 
 const dateParser = {
     parseEventDate: (dateInfo, actStartDate, actEndDate) => {},
@@ -70,7 +71,7 @@ export const duringActivityDateParser = {
             eventStart.setDate(eventStart.getDate() - daySub)
             eventEnd.setDate(eventEnd.getDate() - daySub)
             duringActivityDateParser.setEventTime(eventStart, eventEnd, duringActivityDateParser.parseEventTime(description.substring(dayEnd+1)))
-            return formatDate(eventStart, eventEnd)
+            return formatDateTime(eventStart, eventEnd)
         }
 
         // parse 最后
@@ -78,20 +79,30 @@ export const duringActivityDateParser = {
             eventStart.setDate(actEndDate.getDate())
             eventEnd.setDate(actEndDate.getDate())
             duringActivityDateParser.setEventTime(eventStart, eventEnd, duringActivityDateParser.parseEventTime(description.substring(dayEnd+1)))
-            return formatDate(eventStart, eventEnd)
+            return formatDateTime(eventStart, eventEnd)
         }
-        
-        if (description == "活動期間") {
+
+        if (description.includes("活動期間")) {
             eventStart.setDate(actStartDate.getDate())
             eventEnd.setDate(actEndDate.getDate())
+            if (description.includes("1周內")) {
+                eventEnd.setDate(actEndDate.getDate()+1+(7 - actEndDate.getDay()-1) % 7)
+            } else if(description.includes("的周日")) {
+                eventStart.setDate(actStartDate.getDate()+(7 - actStartDate.getDay()) % 7)
+                eventEnd.setDate(eventStart.getDate())
+            }
             return formatDate(eventStart, eventEnd)
         }
 
+        if (description == "活動後1周內") {
+            eventStart.setDate(actEndDate.getDate()+1)
+            eventEnd.setDate(actEndDate.getDate()+1+(7 - actEndDate.getDay()-1) % 7)
+            return formatDate(eventStart, eventEnd)
+        }
 
     },
     parseEventTime: (timeStr) => {
         timeStr = timeStr.trim()
-        const timeRegex = /([上下]午)?(\d+)點?/g
         const times = timeStr.match(timeRegex)
 
         const startTime = times[0]
@@ -112,7 +123,27 @@ export const duringActivityDateParser = {
     setEventTime: (eventStart, eventEnd, times) => {
         eventStart.setHours(times[0])
         eventEnd.setHours(times[1])
-    }
+    },
+
+}
+
+const formatDate = (eventStart, eventEnd) => {
+    return { start: eventStart.toLocaleString("en-US",{month: '2-digit', day: '2-digit', year: 'numeric'}),
+        end: eventEnd.toLocaleString("en-US", {month: '2-digit', day: '2-digit', year: 'numeric'})}
+}
+
+const formatDateTime = (eventStart, eventEnd) => {
+    const options = {
+        timeZone: "America/Los_Angeles",
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    };
+    return { start: eventStart.toLocaleString("en-US", options),
+        end: eventEnd.toLocaleString("en-US", options)}
 }
 
 export const parseActivityDate = (dateStr) => {
@@ -125,7 +156,3 @@ export const parseActivityDate = (dateStr) => {
     return date
 }
 
-const formatDate = (eventStart, eventEnd) => {
-    return { start: eventStart.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }),
-        end: eventEnd.toLocaleString("en-US", { timeZone: "America/Los_Angeles" })}
-}
