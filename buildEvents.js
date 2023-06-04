@@ -6,6 +6,7 @@ import { toHast } from 'mdast-util-to-hast'
 import { toHtml } from 'hast-util-to-html'
 
 import _ from 'lodash'
+import {beforeActivityDateParser, duringActivityDateParser, parseActivityDate} from "./dateParser.js";
 
 const tableToArray = _.rest( (header, rows) => {
   const keys = _.map(header.children, 'children[0].value')
@@ -31,49 +32,7 @@ const parseMdFile = async (mdName) => {
   })
 }
 
-/* To parse relative date time description to a { start, end }
- *
- * @input
- * description: e.g. 提前12周-9周, 活動第1天下午3點-6點
- * dateRange: { start, end } of the activity, both date format
- *
- * @output
- * start and end of the event
- * {
- *   start: LocaleDateString
- *   end: LocaleDateString
- * }
- */
-const parseDateTime = (description, dateRange) => {
-  // TOOD @lupengwa (it doesn't have to be in regex)
-  // parts:
-  //   prefix: 提前, 活動第x天, 活動期間, 活動最後1天, 活動後
-  //   range: x天-y天, x周-y天, x周-y周
-  //   timeRange: x時-y時, 下午x時-y時
-
-  var m
-  if (m = description.match(/提前(\d+)周-(\d+)周/)) {
-    const startWeek = parseInt(m[1])
-    const endWeek = parseInt(m[2])
-    const start = new Date()
-    const end = new Date()
-    start.setDate(dateRange.start.getDate() - startWeek * 7)
-    end.setDate(dateRange.start.getDate() - endWeek * 7)
-    return { start: start.toLocaleDateString(), end: end.toLocaleDateString() }
-
-  } else {
-    return { start: description, end: description }
-  }
-}
-
-/* To parse one activity into a list of events
- *
- * @input
- * activity: object of { title, start, end, name }
- * tree: parsed raw tree from md
- *
- * @output 
- * [{
+/* GOAL: [{
  *   title: eventTitle
  *   start: startTime or startDate
  *   end: endTime or endTime
@@ -83,7 +42,6 @@ const parseDateTime = (description, dateRange) => {
  * }]
  */
 const parseActivity = (activity, tree) => {
-  // NOTE grouping elements
   let tags = {
     activity: activity.label,
     dept: null
@@ -105,13 +63,6 @@ const parseActivity = (activity, tree) => {
   })
 
   const eventsData = _.groupBy(_.filter(tree.children, 'title'), 'title')
-
-  // NOTE convert each group to an event
-  const activityDateRange = {
-    start: new Date(`${activity.year}/${activity.start}`),
-    end: new Date(`${activity.year}/${activity.end}`)
-  }
-
   return _.map(eventsData, (elements, title) => {
     const attributes = _.map(elements, (elem) => {
       if (elem.type === 'heading') {
@@ -120,7 +71,8 @@ const parseActivity = (activity, tree) => {
         const text = elem.children[0].value
         const [key, value] = _.split(text, '：') 
         if (key ===  '時間') {
-          return parseDateTime(value, activityDateRange)
+          let result = eventDateParser(value, parseActivityDate(activity.start), parseActivityDate(activity.end))
+          return result
         } else if (key === '同工') {
           return { groups: _.split(value, ' ') }
         } else {
@@ -139,6 +91,17 @@ const yearActivities = async (year) => {
   const tableRows = tree.children[0].children
   const array = tableToArray(...tableRows)
   return activityHash(array)
+}
+
+const eventDateParser = (dateInfo, actStartDate, actEndDate) => {
+  let res = { start: dateInfo, end: dateInfo}
+  if(dateInfo.includes("提前")) {
+    res = beforeActivityDateParser.parseEventDate(dateInfo, actStartDate, actEndDate)
+  }
+  else if(dateInfo.includes("活動")) {
+    res = duringActivityDateParser.parseEventDate(dateInfo, actStartDate, actEndDate)
+  }
+  return res
 }
 
 const main = async () => {
