@@ -22,6 +22,10 @@ export const beforeActivityDateParser = {
             let days = weeks * 7;
             return days + "天";
         });
+        relativeDays = description.replace(/(\d+)個月/g, function(match, months) {
+            let days = months * 30;
+            return days + "天";
+        });
 
         let nums = relativeDays.match(regex)
         nums = nums.map( n => parseInt(n)).sort((a, b) => b-a)
@@ -54,28 +58,36 @@ export const beforeActivityDateParser = {
 */
 export const duringActivityDateParser = {
     wordMap: {"第一":0, "第二":1, "第三":2, "第四":3, "第五":4, "第六":5, "第七":6, "第八":7, "第九":8, "第十":9},
-    parseEventDate: (dateInfo, actStartDate, actEndDate) => {
+    parseEventDate: (description, actStartDate, actEndDate) => {
         let eventStart = new Date(actStartDate)
         let eventEnd = new Date(actStartDate)
 
         // parse 第x天
-        let dayStart = dateInfo.indexOf("第")
-        let dayEnd = dateInfo.indexOf("天")
+        let dayStart = description.indexOf("第")
+        let dayEnd = description.indexOf("天")
         if (dayStart != -1 && dayEnd != -1 && dayEnd > dayStart) {
-            let daySub = duringActivityDateParser.wordMap[dateInfo.substring(dayStart, dayEnd)]
+            let daySub = duringActivityDateParser.wordMap[description.substring(dayStart, dayEnd)]
             eventStart.setDate(eventStart.getDate() - daySub)
             eventEnd.setDate(eventEnd.getDate() - daySub)
-            duringActivityDateParser.setEventTime(eventStart, eventEnd, duringActivityDateParser.parseEventTime(dateInfo.substring(dayEnd+1)))
+            duringActivityDateParser.setEventTime(eventStart, eventEnd, duringActivityDateParser.parseEventTime(description.substring(dayEnd+1)))
             return formatDate(eventStart, eventEnd)
         }
 
         // parse 最后
-        if (dateInfo.includes("最後")) {
+        if (description.includes("最後")) {
             eventStart.setDate(actEndDate.getDate())
             eventEnd.setDate(actEndDate.getDate())
-            duringActivityDateParser.setEventTime(eventStart, eventEnd, duringActivityDateParser.parseEventTime(dateInfo.substring(dayEnd+1)))
+            duringActivityDateParser.setEventTime(eventStart, eventEnd, duringActivityDateParser.parseEventTime(description.substring(dayEnd+1)))
             return formatDate(eventStart, eventEnd)
         }
+        
+        if (description == "活動期間") {
+            eventStart.setDate(actStartDate.getDate())
+            eventEnd.setDate(actEndDate.getDate())
+            return formatDate(eventStart, eventEnd)
+        }
+
+
     },
     parseEventTime: (timeStr) => {
         timeStr = timeStr.trim()
