@@ -23,7 +23,7 @@ export const beforeActivityDateParser = {
             let days = weeks * 7;
             return days + "天";
         });
-        relativeDays = description.replace(/(\d+)個月/g, function(match, months) {
+        relativeDays = relativeDays.replace(/(\d+)個月/g, function(match, months) {
             let days = months * 30;
             return days + "天";
         });
