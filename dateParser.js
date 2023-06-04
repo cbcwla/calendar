@@ -41,6 +41,11 @@ export const beforeActivityDateParser = {
         if (eventStart.getTime() === eventEnd.getTime()) {
             eventEnd.setDate(eventEnd.getDate()+1)
         }
+        let times = parseEventTime(description)
+        if (times.length == 2) {
+            setEventTime(eventStart, eventEnd, times)
+            return formatDateTime(eventStart, eventEnd)
+        }
         return formatDate(eventStart, eventEnd)
     },
 }
@@ -70,7 +75,7 @@ export const duringActivityDateParser = {
             let daySub = duringActivityDateParser.wordMap[description.substring(dayStart, dayEnd)]
             eventStart.setDate(eventStart.getDate() - daySub)
             eventEnd.setDate(eventEnd.getDate() - daySub)
-            duringActivityDateParser.setEventTime(eventStart, eventEnd, duringActivityDateParser.parseEventTime(description.substring(dayEnd+1)))
+            setEventTime(eventStart, eventEnd, parseEventTime(description))
             return formatDateTime(eventStart, eventEnd)
         }
 
@@ -78,7 +83,7 @@ export const duringActivityDateParser = {
         if (description.includes("最後")) {
             eventStart.setDate(actEndDate.getDate())
             eventEnd.setDate(actEndDate.getDate())
-            duringActivityDateParser.setEventTime(eventStart, eventEnd, duringActivityDateParser.parseEventTime(description.substring(dayEnd+1)))
+            setEventTime(eventStart, eventEnd, parseEventTime(description))
             return formatDateTime(eventStart, eventEnd)
         }
 
@@ -101,30 +106,35 @@ export const duringActivityDateParser = {
         }
 
     },
-    parseEventTime: (timeStr) => {
-        timeStr = timeStr.trim()
-        const times = timeStr.match(timeRegex)
 
-        const startTime = times[0]
-        const endTime = times[1]
+}
 
-        const startHour = parseInt(startTime.replace(/[^0-9]/g, ''))
-        const endHour = parseInt(endTime.replace(/[^0-9]/g, ''))
+const parseEventTime = (timeStr) => {
+    timeStr = timeStr.trim()
+    if (!timeStr.includes("點")) {
+        return []
+    }
+    const times = timeStr.match(timeRegex)
+    const startTime = times[0]
+    const endTime = times[1]
 
-        const startSuffix = startTime.includes('下午') ? 'PM' : 'AM'
-        const endSuffix = (endTime.includes('下午') || (!endTime.includes('下午') && startTime.includes('下午')))? 'PM' : 'AM'
+    const startHour = parseInt(startTime.replace(/[^0-9]/g, ''))
+    const endHour = parseInt(endTime.replace(/[^0-9]/g, ''))
 
-        const start = startHour + (startSuffix === 'PM' ? 12 : 0)
+    const startSuffix = startTime.includes('下午') ? 'PM' : 'AM'
+    const endSuffix = (endTime.includes('下午') || (!endTime.includes('下午') && startTime.includes('下午')))? 'PM' : 'AM'
 
-        const end = endHour + (endSuffix === 'PM'  ? 12 : 0)
+    const start = startHour + (startSuffix === 'PM' ? 12 : 0)
 
-        return [start, end]
-    },
-    setEventTime: (eventStart, eventEnd, times) => {
+    const end = endHour + (endSuffix === 'PM'  ? 12 : 0)
+
+    return [start, end]
+}
+const setEventTime = (eventStart, eventEnd, times) => {
+    if(times.length == 2) {
         eventStart.setHours(times[0])
         eventEnd.setHours(times[1])
-    },
-
+    }
 }
 
 const formatDate = (eventStart, eventEnd) => {
