@@ -4,13 +4,21 @@ const dateParser = {
     parseEventDate: (dateInfo, actStartDate, actEndDate) => {},
 };
 
-// example of supported date format
-//提前2周-3天
-//提前10天
-//提前5周
+/*
+* @input
+* description: e.g. 提前2周-3天, 提前10天,提前5周
+* actStartDate: start of the activity
+* actEndDate: end of the activity
+* @output
+* start and end of the event
+* {
+    *   start: LocaleDateString
+    *   end: LocaleDateString
+* }
+*/
 export const beforeActivityDateParser = {
-    parseRelativeDates: (relativeDate) => {
-        let relativeDays = relativeDate.replace(/(\d+)周/g, function(match, weeks) {
+    parseDescription: (description) => {
+        let relativeDays = description.replace(/(\d+)周/g, function(match, weeks) {
             let days = weeks * 7;
             return days + "天";
         });
@@ -19,10 +27,10 @@ export const beforeActivityDateParser = {
         nums = nums.map( n => parseInt(n)).sort((a, b) => b-a)
         return nums
     },
-    parseEventDate: (dateInfo, actStartDate, actEndDate) => {
+    parseEventDate: (description, actStartDate, actEndDate) => {
         let eventStart = new Date(actStartDate)
         let eventEnd = new Date(actStartDate)
-        const nums = beforeActivityDateParser.parseRelativeDates(dateInfo)
+        const nums = beforeActivityDateParser.parseDescription(description)
         eventStart.setDate(eventStart.getDate()-nums[0])
         nums.length == 2 ? eventEnd.setDate(eventEnd.getDate()-nums[1]) : eventEnd.setDate(eventEnd.getDate()-nums[0])
         if (eventStart.getTime() === eventEnd.getTime()) {
@@ -32,11 +40,18 @@ export const beforeActivityDateParser = {
     },
 }
 
-// example of supported date format
-//活动第一天下午3點-6點
-//活动第一天下午3-6點
-//活动第一天上午6點-下午6點
-//活动最後一天上午6點-下午6點
+/*
+* @input
+* description: e.g. 活动第一天下午3點-6點,活动第一天下午3-6點,活动第一天上午6點-下午6點,活动最後一天上午6點-下午6點
+* actStartDate: start of the activity
+* actEndDate: end of the activity
+* @output
+* start and end of the event
+* {
+    *   start: LocaleDateString
+    *   end: LocaleDateString
+* }
+*/
 export const duringActivityDateParser = {
     wordMap: {"第一":0, "第二":1, "第三":2, "第四":3, "第五":4, "第六":5, "第七":6, "第八":7, "第九":8, "第十":9},
     parseEventDate: (dateInfo, actStartDate, actEndDate) => {
