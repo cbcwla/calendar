@@ -105,10 +105,11 @@ const eventDateParser = (dateInfo, actStartDate, actEndDate) => {
 }
 
 const main = async () => {
-  const activities = await yearActivities('2023')
+  const year = '2023'
+  const activities = await yearActivities(year)
   const events = _.flatten(await Promise.all(_.map(activities, async (activity) => {
     const tree = await parseMdFile(activity.label)
-    return parseActivity(activity, tree)
+    return parseActivity(_.merge({ year }, activity), tree)
   })))
 
   console.log(JSON.stringify(events, null, 2))
