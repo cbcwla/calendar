@@ -10,14 +10,14 @@ import _ from 'lodash'
 const tableToArray = _.rest( (header, rows) => {
   const keys = _.map(header.children, 'children[0].value')
   return _.map(rows, (row) => {
-    const pairs = _.map(row.children, (cell, idx) => [keys[idx], cell.children[0].value])
+    const pairs = _.map(row.children, (cell, idx) => [keys[idx], _.get(cell, 'children[0].value')])
     return _.fromPairs(pairs)
   })
 })
 
 const activityHash = (array) => {
   const pairs = _.map(array, (activity) =>
-    [activity.label, activity]
+    [activity.id, activity]
   )
   return _.fromPairs(pairs)
 }
