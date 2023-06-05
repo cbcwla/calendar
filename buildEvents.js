@@ -43,7 +43,7 @@ const parseMdFile = async (mdName) => {
  */
 const parseActivity = (activity, tree) => {
   let tags = {
-    activity: activity.label,
+    activity: activity.type,
     dept: null
   }
 
@@ -88,7 +88,7 @@ const parseActivity = (activity, tree) => {
 
 const yearActivities = async (year) => {
   const tree = await parseMdFile(year)
-  const tableRows = tree.children[0].children
+  const tableRows = tree.children[1].children
   const array = tableToArray(...tableRows)
   return activityHash(array)
 }
@@ -108,7 +108,7 @@ const main = async () => {
   const year = '2023'
   const activities = await yearActivities(year)
   const events = _.flatten(await Promise.all(_.map(activities, async (activity) => {
-    const tree = await parseMdFile(activity.label)
+    const tree = await parseMdFile(activity.type)
     return parseActivity(_.merge({ year }, activity), tree)
   })))
 
