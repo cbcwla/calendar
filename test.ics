@@ -9,7 +9,6 @@ BEGIN:VEVENT
 DTSTART;VALUE=DATE:20230606
 DTEND;VALUE=DATE:20230608
 DTSTAMP:20230607T054033Z
-UID:63qaaqlbt8rmukcpln2q9socbm@google.com
 CREATED:20230607T052523Z
 DESCRIPTION:<b>bold</b><br><i>italic</i><br><ul><li>item 1</li><li>item 2</
  li></ul>
