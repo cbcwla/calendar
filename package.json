@@ -14,7 +14,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "buildEvents": "echo \"const events=\" > src/events.js; node buildEvents.js >> src/events.js; echo \"export default events\" >> src/events.js",
+    "buildEvents": "echo \"const events=\" > src/events.js; node buildEvents/index.js >> src/events.js; echo \"export default events\" >> src/events.js",
     "start": "npm run buildEvents && react-scripts start",
     "build": "npm run buildEvents && react-scripts build",
     "test": "react-scripts test",
