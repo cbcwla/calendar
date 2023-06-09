@@ -1,22 +1,44 @@
-import logo from './logo.svg';
-import './App.css';
-import events from './events.js';
+import { Calendar } from "./components/Calendar.jsx";
+import events from "./events.js";
+import { ChakraProvider, Container, Heading, VStack } from "@chakra-ui/react";
+
+// for checking valid date format
+const dateFormat =
+  /^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\d\d/;
+
+// convert events to FullCalendar format
+// full day event should not have time
+const calEvents = events
+  .filter(
+    (e) =>
+      !!e.start &&
+      !!e.end &&
+      e.start.match(dateFormat) !== null &&
+      e.end.match(dateFormat) !== null
+  )
+  .map((e) => ({
+    ...e,
+    title: `${e.tags?.activity?.toUpperCase() ?? ""}: ${e.title}`,
+    start: e.start.includes(",")
+      ? new Date(e.start)
+      : new Date(e.start).toISOString().replace(/T.*$/, ""),
+    end: e.end.includes(",")
+      ? new Date(e.end)
+      : new Date(e.end).toISOString().replace(/T.*$/, ""),
+  }));
 
 function App() {
   return (
-    <div className="App">
-      <ul>{
-        events.map( (event, index) =>
-          <li key={ event.title } style={{padding: '2px', margin: '2px', backgroundColor:  index % 2 ? 'white' : 'lightGray' }}>
-            <p>{ event.title }</p>
-            <p>{ Object.values(event.tags).map( (tag) => `#${tag}`).join(', ') }</p>
-            <p>{ event.start === event.end ? event.start : `from ${event.start} to ${event.end}` } </p>
-            <p>{ event.groups && event.groups.join(', ') }</p>
-            <p>{ event.details && `details in html of ${ event.details.length } chars`}</p>
-          </li>
-        )
-      }</ul>
-    </div>
+    <ChakraProvider>
+      <VStack>
+        <Container maxW="container.lg" m={5}>
+          <VStack m={2}>
+            <Heading as="h1">CBCWLA Calendar</Heading>
+          </VStack>
+          <Calendar events={calEvents} />
+        </Container>
+      </VStack>
+    </ChakraProvider>
   );
 }
 
