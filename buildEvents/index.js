@@ -32,7 +32,8 @@ const parseMdFile = async (mdName) => {
   })
 }
 
-/* GOAL: [{
+/* NOTE Expected output is an array of event objects, like:
+ * [{
  *   title: eventTitle
  *   start: startTime or startDate
  *   end: endTime or endTime
@@ -40,6 +41,13 @@ const parseMdFile = async (mdName) => {
  *   groups: []
  *   details: html
  * }]
+ *
+ * TODO: support repeat attribute
+ *   repeat: { // optional
+ *     until: end_date,
+ *     frequency: enum('weekly', 'monthly')
+ *     byday: 'SU' // 'SU': every sunday; '3SU': every 3rd sunday of the month; 'SU,WE': every sunday and wednesday
+ *   } // convert to ics samples: "RRULE:FREQ=WEEKLY;WKST=SU;UNTIL=20230630;BYDAY=SU", "RRULE:FREQ=MONTHLY;UNTIL=20241231;BYDAY=3SU"
  */
 const parseActivity = (activity, tree) => {
   let tags = {
