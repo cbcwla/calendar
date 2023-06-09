@@ -36,6 +36,10 @@ export const Calendar = ({ events }) => {
 };
 
 const DetailPopup = forwardRef((event, ref) => {
+  const sourceEvent = event.event._def.extendedProps; // this is our original event object
+  const { tags, details } = sourceEvent;
+  const departments = tags?.dept?.split(",");
+
   return (
     <Box
       as="div"
@@ -51,11 +55,12 @@ const DetailPopup = forwardRef((event, ref) => {
       <Text color="gray.900" fontWeight="bold" backgroundColor="gray.100" p={2}>
         {event.event.title}
       </Text>
+      {departments && <Text m={5}>{departments.join(" ")}</Text>}
       <Box
         m={5}
         ml={10}
         dangerouslySetInnerHTML={{
-          __html: event.event._def.extendedProps.details,
+          __html: details,
         }}
       />
     </Box>

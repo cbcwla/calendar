@@ -20,6 +20,7 @@ const calEvents = events
   )
   .map((e) => ({
     ...e,
+    title: `${e.tags?.activity?.toUpperCase() ?? ""}: ${e.title}`,
     start: e.start.includes(",")
       ? new Date(e.start)
       : new Date(e.start).toISOString().replace(/T.*$/, ""),
