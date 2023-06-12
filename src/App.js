@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import events from './events.js';
+import { roles, events } from './events.js';
 
 function App() {
   return (

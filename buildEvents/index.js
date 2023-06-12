@@ -1,36 +1,12 @@
-import fs from 'node:fs/promises'
-import { fromMarkdown } from 'mdast-util-from-markdown'
-import { gfm } from 'micromark-extension-gfm'
-import { gfmFromMarkdown } from 'mdast-util-gfm'
 import { toHast } from 'mdast-util-to-hast'
 import { toHtml } from 'hast-util-to-html'
 
 import _ from 'lodash'
-import {beforeActivityDateParser, duringActivityDateParser, parseActivityDate} from "./dateParser.js";
-
-const tableToArray = _.rest( (header, rows) => {
-  const keys = _.map(header.children, 'children[0].value')
-  return _.map(rows, (row) => {
-    const pairs = _.map(row.children, (cell, idx) => [keys[idx], _.get(cell, 'children[0].value')])
-    return _.fromPairs(pairs)
-  })
-})
-
-const activityHash = (array) => {
-  const pairs = _.map(array, (activity) =>
-    [activity.id, activity]
-  )
-  return _.fromPairs(pairs)
-}
-
-const parseMdFile = async (mdName) => {
-  const doc = await fs.readFile(`docs/${mdName}.md`)
-
-  return fromMarkdown(doc, {
-    extensions: [gfm()],
-    mdastExtensions: [gfmFromMarkdown()]
-  })
-}
+import { getPersonRoles, parseMdFile, YEAR, yearActivities } from './parseMd.js'
+import {
+  beforeActivityDateParser,
+  duringActivityDateParser,
+  parseActivityDate} from './dateParser.js'
 
 /* NOTE Expected output is an array of event objects, like:
  * [{
@@ -38,7 +14,7 @@ const parseMdFile = async (mdName) => {
  *   start: startTime or startDate
  *   end: endTime or endTime
  *   tags: { activity, dept } 
- *   groups: []
+ *   owners: []
  *   details: html
  * }]
  *
@@ -49,7 +25,7 @@ const parseMdFile = async (mdName) => {
  *     byday: 'SU' // 'SU': every sunday; '3SU': every 3rd sunday of the month; 'SU,WE': every sunday and wednesday
  *   } // convert to ics samples: "RRULE:FREQ=WEEKLY;WKST=SU;UNTIL=20230630;BYDAY=SU", "RRULE:FREQ=MONTHLY;UNTIL=20241231;BYDAY=3SU"
  */
-const parseActivity = (activity, tree) => {
+const parseActivity = (activity, tree, roleExists) => {
   let tags = {
     activity: activity.type,
     dept: null
@@ -82,7 +58,12 @@ const parseActivity = (activity, tree) => {
           let result = eventDateParser(value, parseActivityDate(activity.start), parseActivityDate(activity.end))
           return result
         } else if (key === '同工') {
-          return { groups: _.split(value, ' ') }
+          const owners = _.map(_.split(value, /[,， ]+/), (owner) => {
+            const role = _.replace(owner, /^@/, '')
+            const activityRoleName = _.compact([role, activity.id]).join('.')
+            return roleExists[activityRoleName] ? activityRoleName : role
+          })
+          return { owners } 
         } else {
           return {}
         }
@@ -92,13 +73,6 @@ const parseActivity = (activity, tree) => {
     })
     return _.merge(...attributes)
   })
-}
-
-const yearActivities = async (year) => {
-  const tree = await parseMdFile(year)
-  const tableRows = tree.children[1].children
-  const array = tableToArray(...tableRows)
-  return activityHash(array)
 }
 
 const eventDateParser = (dateInfo, actStartDate, actEndDate) => {
@@ -113,14 +87,16 @@ const eventDateParser = (dateInfo, actStartDate, actEndDate) => {
 }
 
 const main = async () => {
-  const year = '2023'
-  const activities = await yearActivities(year)
+  const activities = await yearActivities(YEAR)
+  const personRoles = await getPersonRoles()
+  console.log('export const roles = ', JSON.stringify(personRoles, null, 2))
+
+  const roleExists = _.fromPairs(_.map(_.uniq(_.flatten(_.values(personRoles))), (role) => [role, true]))
   const events = _.flatten(await Promise.all(_.map(activities, async (activity) => {
     const tree = await parseMdFile(activity.type)
-    return parseActivity(_.merge({ year }, activity), tree)
+    return parseActivity(_.merge({ year: YEAR }, activity), tree, roleExists)
   })))
-
-  console.log(JSON.stringify(events, null, 2))
+  console.log('export const events = ', JSON.stringify(events, null, 2))
 }
 main()
 
