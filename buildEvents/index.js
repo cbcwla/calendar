@@ -71,7 +71,8 @@ const parseActivity = (activity, tree, roleExists) => {
         return { details: toHtml(toHast(elem)) }
       }
     })
-    return _.merge(...attributes)
+    const ev = _.merge(...attributes)
+    return _.merge(ev, { id: `${ev.title}.${activity.id}` })
   })
 }
 
