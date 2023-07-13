@@ -39,6 +39,10 @@ export const beforeActivityDateParser = {
         const nums = beforeActivityDateParser.parseDescription(description)
         eventStart.setDate(eventStart.getDate()-nums[0])
         nums.length == 2 ? eventEnd.setDate(eventEnd.getDate()-nums[1]) : eventEnd.setDate(eventEnd.getDate()-nums[0])
+        if (description.includes("每周")) {
+            const res = parseRepeatDay(eventStart, eventEnd, description)
+            return res
+        }
         if (eventStart.getTime() === eventEnd.getTime()) {
             eventEnd.setDate(eventEnd.getDate()+1)
         }
@@ -113,7 +117,7 @@ export const duringActivityDateParser = {
         }
 
         if (description.includes("每周")) {
-            const res = parseRepeatDay(null, actEndDate, description)
+            const res = parseRepeatDay(actEndDate, null, description)
             return res
         }
 
@@ -133,17 +137,13 @@ export const duringActivityDateParser = {
     *   end: LocaleDateString
 * }]
 */
-const repeatDayMap = {"每周一":2, "每周二":3, "每周三":4, "每周四":5, "每周五":6, "每周六":7, "每周日":1}
+const repeatDayMap = {"每周一":1, "每周二":2, "每周三":3, "每周四":4, "每周五":5, "每周六":6, "每周日":0}
 const parseRepeatDay = (startDay, endDay, description) => {
     const dayIdx = description.indexOf("每周")
     const specificDay = repeatDayMap[description.substring(dayIdx, dayIdx+3)]
     const specificDays = []
     let curDay = startDay
-    let stopDay = new Date(endDay)
-    if(curDay == null) {
-        curDay = endDay
-        stopDay.setDate(endDay.getDate()+defaultLength)
-    }
+    let stopDay = endDay!= null ? new Date(endDay):new Date(curDay.getFullYear(), 11, 31)
     while(curDay < stopDay) {
         if(curDay.getDay() == specificDay) {
             specificDays.push(formatDate(curDay, curDay));

@@ -57,7 +57,6 @@ const parseActivity = (activity, tree, roleExists) => {
         if (key ===  '時間') {
           const end = activity.end != null? activity.end:activity.start
           let result = eventDateParser(value, parseActivityDate(activity.start), parseActivityDate(end))
-          console.log(result)
           return result
         } else if (key === '同工') {
           const owners = _.map(_.split(value, /[,， ]+/), (owner) => {
