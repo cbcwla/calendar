@@ -1,5 +1,6 @@
 const regex = /\d+(\.\d+)?/g;
 const timeRegex = /([上下]午)?(\d+)點?/g
+const defaultLength = 30
 
 const dateParser = {
     parseEventDate: (dateInfo, actStartDate, actEndDate) => {},
@@ -38,15 +39,19 @@ export const beforeActivityDateParser = {
         const nums = beforeActivityDateParser.parseDescription(description)
         eventStart.setDate(eventStart.getDate()-nums[0])
         nums.length == 2 ? eventEnd.setDate(eventEnd.getDate()-nums[1]) : eventEnd.setDate(eventEnd.getDate()-nums[0])
+        if (description.includes("每周")) {
+            const res = parseRepeatDay(eventStart, eventEnd, description)
+            return res
+        }
         if (eventStart.getTime() === eventEnd.getTime()) {
             eventEnd.setDate(eventEnd.getDate()+1)
         }
         let times = parseEventTime(description)
         if (times.length == 2) {
             setEventTime(eventStart, eventEnd, times)
-            return formatDateTime(eventStart, eventEnd)
+            return [formatDateTime(eventStart, eventEnd)]
         }
-        return formatDate(eventStart, eventEnd)
+        return [formatDate(eventStart, eventEnd)]
     },
 }
 
@@ -76,7 +81,7 @@ export const duringActivityDateParser = {
             eventStart.setDate(eventStart.getDate() - daySub)
             eventEnd.setDate(eventEnd.getDate() - daySub)
             setEventTime(eventStart, eventEnd, parseEventTime(description))
-            return formatDateTime(eventStart, eventEnd)
+            return [formatDateTime(eventStart, eventEnd)]
         }
 
         // parse 最后
@@ -84,7 +89,7 @@ export const duringActivityDateParser = {
             eventStart.setDate(actEndDate.getDate())
             eventEnd.setDate(actEndDate.getDate())
             setEventTime(eventStart, eventEnd, parseEventTime(description))
-            return formatDateTime(eventStart, eventEnd)
+            return [formatDateTime(eventStart, eventEnd)]
         }
 
         if (description.includes("活動期間")) {
@@ -96,16 +101,57 @@ export const duringActivityDateParser = {
                 eventStart.setDate(actStartDate.getDate()+(7 - actStartDate.getDay()) % 7)
                 eventEnd.setDate(eventStart.getDate())
             }
-            return formatDate(eventStart, eventEnd)
+            return [formatDate(eventStart, eventEnd)]
         }
 
-        if (description == "活動後1周內") {
+        if (description.includes("活動後1周")) {
             eventStart.setDate(actEndDate.getDate()+1)
             eventEnd.setDate(actEndDate.getDate()+1+(7 - actEndDate.getDay()-1) % 7)
-            return formatDate(eventStart, eventEnd)
+            return [formatDate(eventStart, eventEnd)]
         }
 
+        if (description == "活動當日, 活動後的第1個周日") {
+            eventEnd.setDate(actEndDate.getDate()+1+(7 - actEndDate.getDay()-1) % 7)
+            const res = [formatDate(actStartDate, actEndDate), formatDate(eventEnd, eventEnd)]
+            return res
+        }
+
+        if (description.includes("每周")) {
+            const res = parseRepeatDay(actEndDate, null, description)
+            return res
+        }
+
+
     },
+}
+
+/*
+* @input
+* description: e.g. 每周一， 每周二
+* actStartDate: start of the activity
+* actEndDate: end of the activity
+* @output
+* start and end of the event
+* [{
+    *   start: LocaleDateString
+    *   end: LocaleDateString
+* }]
+*/
+const repeatDayMap = {"每周一":1, "每周二":2, "每周三":3, "每周四":4, "每周五":5, "每周六":6, "每周日":0}
+const parseRepeatDay = (startDay, endDay, description) => {
+    const dayIdx = description.indexOf("每周")
+    const specificDay = repeatDayMap[description.substring(dayIdx, dayIdx+3)]
+    const specificDays = []
+    let curDay = startDay
+    let stopDay = endDay!= null ? new Date(endDay):new Date(curDay.getFullYear(), 11, 31)
+    while(curDay < stopDay) {
+        if(curDay.getDay() == specificDay) {
+            specificDays.push(formatDate(curDay, curDay));
+        }
+        curDay.setDate(curDay.getDate()+1)
+    }
+    return specificDays
+
 
 }
 
