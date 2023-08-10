@@ -3,13 +3,35 @@ import { roles, events } from "./events.js";
 import { filter, intersection } from "lodash";
 import { Calendar } from "./components/Calendar.jsx";
 import { ChakraProvider, Container, Heading, VStack } from "@chakra-ui/react";
+import { generateRandomColor } from "./utils.js";
 
 // for checking valid date format
 const dateFormat =
   /^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\d\d/;
 
+// map of activity : color
+const activityColors = events.reduce((acc, event) => {
+  const activity = event.tags?.activity;
+  if (activity && Object.keys(acc).indexOf(activity) === -1) {
+    return { ...acc, [activity]: generateRandomColor() };
+  } else {
+    return acc;
+  }
+}, {});
+
+// map of department : color
+const deptColors = events.reduce((acc, event) => {
+  const dept = event.tags?.dept;
+  if (dept && Object.keys(acc).indexOf(dept) === -1) {
+    return { ...acc, [dept]: generateRandomColor() };
+  } else {
+    return acc;
+  }
+}, {});
+
 // convert events to FullCalendar format
-// full day event should not have time
+// NOTE: full day event should not have time
+// See https://fullcalendar.io/docs/event-object for Event object
 const calEvents = events
   .filter(
     (e) =>
@@ -27,6 +49,10 @@ const calEvents = events
     end: e.end.includes(",")
       ? new Date(e.end)
       : new Date(e.end).toISOString().replace(/T.*$/, ""),
+    backgroundColor: `${
+      e.tags?.activity ? activityColors[e.tags.activity] : "blue"
+    }`, // based on activity
+    textColor: e.tags?.dept ? deptColors[e.tags.dept] : "black", // based on departments
   }));
 
 function App() {
@@ -35,6 +61,8 @@ function App() {
   const displayEvents = name
     ? filter(calEvents, (e) => intersection(e.owners, roles[name]).length > 0)
     : calEvents;
+
+  console.log(displayEvents);
 
   return (
     <ChakraProvider>
