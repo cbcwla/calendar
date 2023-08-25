@@ -1,13 +1,21 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App.js';
-import reportWebVitals from './reportWebVitals.js';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App.js";
+import reportWebVitals from "./reportWebVitals.js";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const router = createBrowserRouter([
+  {
+    path: "/calendar",
+    element: <App />,
+  },
+]);
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
 

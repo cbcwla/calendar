@@ -4,6 +4,7 @@ import { filter, intersection } from "lodash";
 import { Calendar } from "./components/Calendar.jsx";
 import { ChakraProvider, Container, Heading, VStack } from "@chakra-ui/react";
 import { generateRandomColor } from "./utils.js";
+import { useLocation } from "react-router-dom";
 
 // for checking valid date format
 const dateFormat =
@@ -56,13 +57,26 @@ const calEvents = events
   }));
 
 function App() {
-  var name = null;
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
 
-  const displayEvents = name
+  const activity = params.get("activity");
+  const dept = params.get("dept");
+  const name = params.get("name");
+
+  let displayEvents = name
     ? filter(calEvents, (e) => intersection(e.owners, roles[name]).length > 0)
     : calEvents;
 
-  console.log(displayEvents);
+  displayEvents = activity
+    ? displayEvents.filter((e) => e.tags?.activity === activity)
+    : displayEvents;
+
+  displayEvents = dept
+    ? displayEvents.filter((e) => e.tags?.dept === dept)
+    : displayEvents;
+
+  // console.log(displayEvents);
 
   return (
     <ChakraProvider>
