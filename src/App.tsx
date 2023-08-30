@@ -1,27 +1,31 @@
 import "./App.css";
-import { roles, events } from "./events.js";
+import { roles, events } from "./events";
 import { filter, intersection } from "lodash";
-import { Calendar } from "./components/Calendar.jsx";
-import { ChakraProvider, Container, Heading, VStack } from "@chakra-ui/react";
-import { generateRandomColor } from "./utils.js";
+import { generateRandomColor } from "./utils";
 import { useLocation } from "react-router-dom";
+import { ChakraProvider, Container, Heading, VStack } from "@chakra-ui/react";
+import { Calendar } from "./components/Calendar";
+import React from "react";
 
 // for checking valid date format
 const dateFormat =
   /^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\d\d/;
 
 // map of activity : color
-const activityColors = events.reduce((acc, event) => {
-  const activity = event.tags?.activity;
-  if (activity && Object.keys(acc).indexOf(activity) === -1) {
-    return { ...acc, [activity]: generateRandomColor() };
-  } else {
-    return acc;
-  }
-}, {});
+const activityColors: { [activity in string]: string } = events.reduce(
+  (acc, event) => {
+    const activity = event.tags?.activity;
+    if (activity && Object.keys(acc).indexOf(activity) === -1) {
+      return { ...acc, [activity]: generateRandomColor() };
+    } else {
+      return acc;
+    }
+  },
+  {}
+);
 
 // map of department : color
-const deptColors = events.reduce((acc, event) => {
+const deptColors: { [dept in string]: string } = events.reduce((acc, event) => {
   const dept = event.tags?.dept;
   if (dept && Object.keys(acc).indexOf(dept) === -1) {
     return { ...acc, [dept]: generateRandomColor() };
@@ -56,7 +60,7 @@ const calEvents = events
     textColor: e.tags?.dept ? deptColors[e.tags.dept] : "black", // based on departments
   }));
 
-function App() {
+const App = () => {
   const { search } = useLocation();
   const params = new URLSearchParams(search);
 
@@ -90,6 +94,6 @@ function App() {
       </VStack>
     </ChakraProvider>
   );
-}
+};
 
 export default App;
