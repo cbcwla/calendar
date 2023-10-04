@@ -1,18 +1,18 @@
-import { toHast } from "mdast-util-to-hast";
-import { toHtml } from "hast-util-to-html";
+import { toHast } from "mdast-util-to-hast"
+import { toHtml } from "hast-util-to-html"
 
-import _ from "lodash";
+import _ from "lodash"
 import {
   getPersonRoles,
   parseMdFile,
   YEAR,
   yearActivities,
-} from "./parseMd.js";
+} from "./parseMd.js"
 import {
   beforeActivityDateParser,
   duringActivityDateParser,
   parseActivityDate,
-} from "./dateParser.js";
+} from "./dateParser.js"
 
 /* NOTE Expected output is an array of event objects, like:
  * [{
@@ -35,27 +35,26 @@ const parseActivity = (activity, tree, roleExists) => {
   let tags = {
     activity: activity.type,
     dept: null,
-  };
+  }
 
-  let title = null;
+  let title = null
   _.each(tree.children, (elem) => {
     if (elem.type === "heading") {
       if (elem.depth === 2) {
-        tags.dept = elem.children[0].value;
+        tags.dept = elem.children[0].value
       } else if (elem.depth === 3) {
-        title = elem.children[0].value;
-        elem.title = title;
-        elem.tags = _.clone(tags);
+        title = elem.children[0].value
+        elem.title = title
+        elem.tags = _.clone(tags)
       }
     } else {
-      elem.title = title;
+      elem.title = title
     }
-  });
+  })
 
-  const eventsData = _.groupBy(_.filter(tree.children, "title"), "title");
+  const eventsData = _.groupBy(_.filter(tree.children, "title"), "title")
   return _.map(eventsData, (elements, title) => {
     const attributes = _.map(elements, (elem) => {
-
       if (elem.type === 'heading') {
         return _.pick(elem, [ 'title', 'tags' ])
       } else if (elem.type === 'paragraph') {
@@ -64,76 +63,69 @@ const parseActivity = (activity, tree, roleExists) => {
         if (key ===  '時間') {
           const end = activity.end != null? activity.end:activity.start
           let result = eventDateParser(value, parseActivityDate(activity.start), parseActivityDate(end))
-          return result
+          return result[0]
         } else if (key === '同工') {
           const owners = _.map(_.split(value, /[,， ]+/), (owner) => {
-            const role = _.replace(owner, /^@/, "");
-            const activityRoleName = _.compact([role, activity.id]).join(".");
-            return roleExists[activityRoleName] ? activityRoleName : role;
-          });
-          return { owners };
+            const role = _.replace(owner, /^@/, "")
+            const activityRoleName = _.compact([role, activity.id]).join(".")
+            return roleExists[activityRoleName] ? activityRoleName : role
+          })
+          return { owners }
         } else {
-          return {};
+          return {}
         }
       } else {
-        return { details: toHtml(toHast(elem)) };
+        return { details: toHtml(toHast(elem)) }
       }
-    });
-    const ev = _.merge(...attributes);
-    return _.merge(ev, { id: `${ev.title}.${activity.id}` });
-  });
-};
+    })
+    const ev = _.merge(...attributes)
+    return _.merge(ev, { id: `${ev.title}.${activity.id}` })
+  })
+}
 
 const eventDateParser = (dateInfo, actStartDate, actEndDate) => {
-  let res = { start: dateInfo, end: dateInfo };
+  let res = { start: dateInfo, end: dateInfo }
   if (dateInfo.includes("提前")) {
     res = beforeActivityDateParser.parseEventDate(
       dateInfo,
       actStartDate,
       actEndDate
-    );
-  } else if (dateInfo.includes("活動")) {
-    res = duringActivityDateParser.parseEventDate(
-      dateInfo,
-      actStartDate,
-      actEndDate
-    );
-  } else {
-    res = { start: "", end: "" };
-  }
-  else if(dateInfo.includes("活動") || dateInfo.includes("每")) {
+    )
+  } else if (dateInfo.includes("活動") || dateInfo.includes("每")) {
     res = duringActivityDateParser.parseEventDate(dateInfo, actStartDate, actEndDate)
+  } else {
+    res = { start: "", end: "" }
   }
   return res
 }
 
 const main = async () => {
-  console.log('import { RawEvent, Roles } from "./types";');
-  const activities = await yearActivities(YEAR);
-  const personRoles = await getPersonRoles();
+  console.log('import { RawEvent, Roles } from "./types";')
+  const activities = await yearActivities(YEAR)
+  const personRoles = await getPersonRoles()
   console.log(
     "export const roles : Roles = ",
     JSON.stringify(personRoles, null, 2)
-  );
+  )
 
   const roleExists = _.fromPairs(
     _.map(_.uniq(_.flatten(_.values(personRoles))), (role) => [role, true])
-  );
+  )
   const events = _.flatten(
     await Promise.all(
       _.map(activities, async (activity) => {
-        const tree = await parseMdFile(activity.type);
+        const tree = await parseMdFile(activity.type)
         return parseActivity(
           _.merge({ year: YEAR }, activity),
           tree,
           roleExists
-        );
+        )
       })
     )
-  );
+  )
   console.log(
     "export const events: RawEvent[] = ",
     JSON.stringify(events, null, 2)
-  );
-};
-main();
+  )
+}
+main()
