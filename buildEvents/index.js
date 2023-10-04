@@ -55,19 +55,17 @@ const parseActivity = (activity, tree, roleExists) => {
   const eventsData = _.groupBy(_.filter(tree.children, "title"), "title");
   return _.map(eventsData, (elements, title) => {
     const attributes = _.map(elements, (elem) => {
-      if (elem.type === "heading") {
-        return _.pick(elem, ["title", "tags"]);
-      } else if (elem.type === "paragraph") {
-        const text = elem.children[0].value;
-        const [key, value] = _.split(text, "：");
-        if (key === "時間") {
-          let result = eventDateParser(
-            value,
-            parseActivityDate(activity.start),
-            parseActivityDate(activity.end)
-          );
-          return result;
-        } else if (key === "同工") {
+
+      if (elem.type === 'heading') {
+        return _.pick(elem, [ 'title', 'tags' ])
+      } else if (elem.type === 'paragraph') {
+        const text = elem.children[0].value
+        const [key, value] = _.split(text, '：') 
+        if (key ===  '時間') {
+          const end = activity.end != null? activity.end:activity.start
+          let result = eventDateParser(value, parseActivityDate(activity.start), parseActivityDate(end))
+          return result
+        } else if (key === '同工') {
           const owners = _.map(_.split(value, /[,， ]+/), (owner) => {
             const role = _.replace(owner, /^@/, "");
             const activityRoleName = _.compact([role, activity.id]).join(".");
@@ -103,8 +101,11 @@ const eventDateParser = (dateInfo, actStartDate, actEndDate) => {
   } else {
     res = { start: "", end: "" };
   }
-  return res;
-};
+  else if(dateInfo.includes("活動") || dateInfo.includes("每")) {
+    res = duringActivityDateParser.parseEventDate(dateInfo, actStartDate, actEndDate)
+  }
+  return res
+}
 
 const main = async () => {
   console.log('import { RawEvent, Roles } from "./types";');
