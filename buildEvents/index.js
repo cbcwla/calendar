@@ -55,7 +55,8 @@ const parseActivity = (activity, tree, roleExists) => {
         const text = elem.children[0].value
         const [key, value] = _.split(text, '：') 
         if (key ===  '時間') {
-          let result = eventDateParser(value, parseActivityDate(activity.start), parseActivityDate(activity.end))
+          const end = activity.end != null? activity.end:activity.start
+          let result = eventDateParser(value, parseActivityDate(activity.start), parseActivityDate(end))
           return result
         } else if (key === '同工') {
           const owners = _.map(_.split(value, /[,， ]+/), (owner) => {
@@ -81,7 +82,7 @@ const eventDateParser = (dateInfo, actStartDate, actEndDate) => {
   if(dateInfo.includes("提前")) {
     res = beforeActivityDateParser.parseEventDate(dateInfo, actStartDate, actEndDate)
   }
-  else if(dateInfo.includes("活動")) {
+  else if(dateInfo.includes("活動") || dateInfo.includes("每")) {
     res = duringActivityDateParser.parseEventDate(dateInfo, actStartDate, actEndDate)
   }
   return res
