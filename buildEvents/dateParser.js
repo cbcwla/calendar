@@ -150,9 +150,8 @@ const parseRepeatDay = (startDay, endDay, description) => {
     }
     curDay.setDate(curDay.getDate()+1)
   }
+  
   return specificDays
-
-
 }
 
 const parseEventTime = (timeStr) => {
@@ -176,6 +175,7 @@ const parseEventTime = (timeStr) => {
 
   return [start, end]
 }
+
 const setEventTime = (eventStart, eventEnd, times) => {
   if(times.length == 2) {
     eventStart.setHours(times[0])
@@ -211,4 +211,3 @@ export const parseActivityDate = (dateStr) => {
   date.setFullYear(currentYear)
   return date
 }
-
