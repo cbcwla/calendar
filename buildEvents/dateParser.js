@@ -6,6 +6,11 @@ const dateParser = {
   parseEventDate: (dateInfo, actStartDate, actEndDate) => {},
 };
 
+const canonicalizeDesc = (description) => {
+  return description.replace(/週/g, '周')
+}
+
+
 /*
  * @input
  * description: e.g. 提前2周-3天, 提前10天,提前5周
@@ -20,6 +25,8 @@ const dateParser = {
  */
 export const beforeActivityDateParser = {
   parseDescription: (description) => {
+    description = canonicalizeDesc(description)
+
     let relativeDays = description.replace(/(\d+)周/g, function(match, weeks) {
       let days = weeks * 7;
       return days + "天";
@@ -33,7 +40,11 @@ export const beforeActivityDateParser = {
     nums = nums.map( n => parseInt(n)).sort((a, b) => b-a)
     return nums
   },
+
   parseEventDate: (description, actStartDate, actEndDate) => {
+    description = canonicalizeDesc(description)
+
+    if (!actEndDate) actEndDate = actStartDate
     let eventStart = new Date(actStartDate)
     let eventEnd = new Date(actStartDate)
     const nums = beforeActivityDateParser.parseDescription(description)
@@ -70,6 +81,8 @@ export const beforeActivityDateParser = {
 export const duringActivityDateParser = {
   wordMap: {"第一":0, "第二":1, "第三":2, "第四":3, "第五":4, "第六":5, "第七":6, "第八":7, "第九":8, "第十":9},
   parseEventDate: (description, actStartDate, actEndDate) => {
+    description = canonicalizeDesc(description)
+
     let eventStart = new Date(actStartDate)
     let eventEnd = new Date(actStartDate)
 
@@ -92,6 +105,12 @@ export const duringActivityDateParser = {
       return [formatDateTime(eventStart, eventEnd)]
     }
 
+    if (description.includes("活動當天")) {
+      eventStart.setDate(actStartDate.getDate())
+      eventEnd.setDate(actEndDate.getDate())
+      return [formatDate(eventStart, eventEnd)]
+    }
+
     if (description.includes("活動期間")) {
       eventStart.setDate(actStartDate.getDate())
       eventEnd.setDate(actEndDate.getDate())
@@ -101,6 +120,12 @@ export const duringActivityDateParser = {
         eventStart.setDate(actStartDate.getDate()+(7 - actStartDate.getDay()) % 7)
         eventEnd.setDate(eventStart.getDate())
       }
+      return [formatDate(eventStart, eventEnd)]
+    }
+
+    if (description.includes("活動後1天")) {
+      eventStart.setDate(actEndDate.getDate()+1)
+      eventEnd.setDate(actEndDate.getDate()+2)
       return [formatDate(eventStart, eventEnd)]
     }
 
@@ -139,6 +164,8 @@ export const duringActivityDateParser = {
  */
 const repeatDayMap = {"每周一":1, "每周二":2, "每周三":3, "每周四":4, "每周五":5, "每周六":6, "每周日":0}
 const parseRepeatDay = (startDay, endDay, description) => {
+  description = canonicalizeDesc(description)
+
   const dayIdx = description.indexOf("每周")
   const specificDay = repeatDayMap[description.substring(dayIdx, dayIdx+3)]
   const specificDays = []

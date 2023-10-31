@@ -63,7 +63,7 @@ const parseActivity = (activity, tree, roleExists) => {
         if (key ===  '時間') {
           const end = activity.end != null? activity.end:activity.start
           let result = eventDateParser(value, parseActivityDate(activity.start), parseActivityDate(end))
-          return result[0]
+          return _.first(result)
         } else if (key === '同工') {
           const owners = _.map(_.split(value, /[,， ]+/), (owner) => {
             const role = _.replace(owner, /^@/, "")
@@ -99,14 +99,9 @@ const eventDateParser = (dateInfo, actStartDate, actEndDate) => {
   return res
 }
 
-const main = async () => {
-  console.log('import { RawEvent, Roles } from "./types";')
+const buildEvents = async () => {
   const activities = await yearActivities(YEAR)
   const personRoles = await getPersonRoles()
-  console.log(
-    "export const roles : Roles = ",
-    JSON.stringify(personRoles, null, 2)
-  )
 
   const roleExists = _.fromPairs(
     _.map(_.uniq(_.flatten(_.values(personRoles))), (role) => [role, true])
@@ -123,9 +118,27 @@ const main = async () => {
       })
     )
   )
+
+  return events
+}
+
+const convertEvantsToIcal = () => {
+}
+
+const main = async () => {
+  const personRoles = await getPersonRoles()
+  const events = await buildEvents()
+  console.log('import { RawEvent, Roles } from "./types";')
+
+  console.log(
+    "export const roles : Roles = ",
+    JSON.stringify(personRoles, null, 2)
+  )
+
   console.log(
     "export const events: RawEvent[] = ",
     JSON.stringify(events, null, 2)
   )
 }
+
 main()
