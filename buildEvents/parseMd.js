@@ -4,7 +4,7 @@ import { gfm } from 'micromark-extension-gfm'
 import { gfmFromMarkdown } from 'mdast-util-gfm'
 import _ from 'lodash'
 
-export const YEAR = 2023
+export const YEAR = 2024
 
 export const parseMdFile = async (mdName) => {
   const doc = await fs.readFile(`docs/${mdName}.md`)
