@@ -321,7 +321,7 @@
 
 任務：
 * 確認教會有足夠的名牌套，否則需要購買，參考型號：Segarty Horizontal Layards Waterproof Resealable
-* 通過註冊表Response文件，用這個Google Script（開發完善中）生成Name Tags
+* 通過註冊表Response文件，用[這個Google Script]([url](https://script.google.com/home/projects/1EsgLmnuMr7w3W0Dzhe5BFkpDry4B3x3ui51gNOkRsg_CsBOBOIPm8tX8/edit))（開發完善中）生成Name Tags
 * 用教會列印機打印
 * 請 @退修會註冊組 同工幫忙裁切，並裝入套中
 * 製作完畢後，交給 @退修會註冊組 保管
@@ -355,7 +355,7 @@
 
 ### 準備晨更材料
 
-時間：提前12-8周
+時間：提前12周-8周
 
 同工：@教育理事 @主任牧師
 
