@@ -321,11 +321,12 @@
 同工：@文書理事 @退修會註冊組
 
 任務：
-* 需要有報名和分組信息
+* 從 @退修會總策劃 獲取報名和分組信息（註冊表Response文件，和其他文件）
 * 確認教會有足夠的名牌套，否則需要購買，參考型號：Segarty Horizontal Layards Waterproof Resealable
-* 通過註冊表Response文件，用[這個Google Script](https://script.google.com/home/projects/1EsgLmnuMr7w3W0Dzhe5BFkpDry4B3x3ui51gNOkRsg_CsBOBOIPm8tX8/edit)（開發完善中）生成Name Tags
-** [我們教會的名牌模板](https://docs.google.com/document/d/1fOlH9EjbnSl_KRPGkZAnNNc7OU1RJpS3iY7syvHMCI0/edit)
-** 如果有其他教會一起參與（例如三一教會），可以用不同的模板，比如這是[三一教會名牌的模板](https://docs.google.com/document/d/1C7IZZcq-oaqCy5yR7Epoavla52rKwyecaxoPbLbK1Us/edit?)
+* 用[這個Google Script](https://script.google.com/home/projects/1EsgLmnuMr7w3W0Dzhe5BFkpDry4B3x3ui51gNOkRsg_CsBOBOIPm8tX8/edit)（開發完善中）生成Name Tags
+  * [我們教會的名牌模板](https://docs.google.com/document/d/1fOlH9EjbnSl_KRPGkZAnNNc7OU1RJpS3iY7syvHMCI0/edit)
+  * 如果有其他教會一起參與（例如三一教會），可以用不同的模板，比如這是[三一教會名牌的模板](https://docs.google.com/document/d/1C7IZZcq-oaqCy5yR7Epoavla52rKwyecaxoPbLbK1Us/edit?)
+  * 注意複製一份模板文件，不要直接在上面改
 * 用教會列印機打印
 * 請 @退修會註冊組 同工幫忙裁切，並裝入套中
 * 製作完畢後，交給 @退修會註冊組 保管
